@@ -1,0 +1,110 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="STFormat.Gui.MainWindow"
+        Width="1100" Height="720"
+        MinWidth="820" MinHeight="520"
+        Title="STFormat — Formatter Structured Text">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Padding="10,8" Background="{DynamicResource SystemControlBackgroundListLowBrush}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="BtnOpenFile">📄 Apri file…</Button>
+                <Button x:Name="BtnOpenFolder">📁 Apri cartella…</Button>
+                <Rectangle Width="1" Fill="Gray" Margin="6,2" />
+                <Button x:Name="BtnSave" IsEnabled="False">💾 Formatta e salva</Button>
+                <Button x:Name="BtnSaveAll" IsEnabled="False">💾 Formatta tutti…</Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Contenuto -->
+        <Grid Grid.Row="1" ColumnDefinitions="290,Auto,*">
+
+            <!-- Pannello sinistro: impostazioni + lista file -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="10,10,4,10">
+
+                <Border Grid.Row="0" Padding="12" CornerRadius="6"
+                        Background="{DynamicResource SystemControlBackgroundListLowBrush}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Impostazioni" FontWeight="Bold" FontSize="14" />
+
+                        <TextBlock Text="Indentazione" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <RadioButton x:Name="RbSpaces" GroupName="Indent" Content="Spazi" IsChecked="True"/>
+                            <RadioButton x:Name="RbTabs" GroupName="Indent" Content="Tab"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="Dimensione" VerticalAlignment="Center" Width="90"/>
+                            <NumericUpDown x:Name="NudIndentSize" Value="4" Minimum="1" Maximum="8"
+                                           Increment="1" Width="110" FormatString="0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="Ampiezza tab" VerticalAlignment="Center" Width="90"/>
+                            <NumericUpDown x:Name="NudTabWidth" Value="4" Minimum="1" Maximum="8"
+                                           Increment="1" Width="110" FormatString="0"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Keyword" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                        <ComboBox x:Name="CbKeywords" SelectedIndex="0" HorizontalAlignment="Stretch">
+                            <ComboBoxItem>MAIUSCOLE</ComboBoxItem>
+                            <ComboBoxItem>minuscole</ComboBoxItem>
+                            <ComboBoxItem>invariate</ComboBoxItem>
+                        </ComboBox>
+
+                        <TextBlock Text="Allineamento a colonne (tab)" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                        <CheckBox x:Name="ChkAlignDecl" Content="Dichiarazioni ( : e := )" IsChecked="True"/>
+                        <CheckBox x:Name="ChkAlignAssign" Content="Assegnazioni ( := )" IsChecked="True"/>
+                        <CheckBox x:Name="ChkAlignComments" Content="Commenti a fine riga" IsChecked="True"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Margin="0,10,0,0" Padding="8" CornerRadius="6"
+                        Background="{DynamicResource SystemControlBackgroundListLowBrush}">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Text="File" FontWeight="Bold" Margin="4,2,0,6"/>
+                        <ListBox Grid.Row="1" x:Name="LstFiles"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <GridSplitter Grid.Column="1" Width="4" Background="Transparent"/>
+
+            <!-- Anteprima Prima / Dopo -->
+            <Grid Grid.Column="2" ColumnDefinitions="*,Auto,*" Margin="4,10,10,10">
+                <Border Grid.Column="0" CornerRadius="6" ClipToBounds="True"
+                        BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Text="Prima" FontWeight="Bold" Padding="10,6"
+                                   Background="{DynamicResource SystemControlBackgroundListLowBrush}"/>
+                        <TextBox Grid.Row="1" x:Name="TxtBefore" IsReadOnly="True" AcceptsReturn="True"
+                                 TextWrapping="NoWrap" FontFamily="Cascadia Code,Menlo,Consolas,monospace"
+                                 FontSize="12" BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    </Grid>
+                </Border>
+
+                <GridSplitter Grid.Column="1" Width="4" Background="Transparent"/>
+
+                <Border Grid.Column="2" CornerRadius="6" ClipToBounds="True"
+                        BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Text="Dopo (formattato)" FontWeight="Bold" Padding="10,6"
+                                   Background="{DynamicResource SystemControlBackgroundListLowBrush}"/>
+                        <TextBox Grid.Row="1" x:Name="TxtAfter" IsReadOnly="True" AcceptsReturn="True"
+                                 TextWrapping="NoWrap" FontFamily="Cascadia Code,Menlo,Consolas,monospace"
+                                 FontSize="12" BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Barra di stato -->
+        <Border Grid.Row="2" Padding="10,6" Background="{DynamicResource SystemControlBackgroundListLowBrush}">
+            <TextBlock x:Name="TxtStatus" Text="Apri un file o una cartella per iniziare."/>
+        </Border>
+    </Grid>
+</Window>

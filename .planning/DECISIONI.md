@@ -68,6 +68,14 @@
 - [ ] "Safe mode" con build TwinCAT prima/dopo: non fattibile su Mac (rimandato a Windows/VSIX);
       la sicurezza qui è data dall'invarianza dei token significativi.
 
+### Fase 6 — GUI (Avalonia) ✅
+- [x] App desktop **Avalonia** (multipiattaforma: dev/test su Mac, gira anche su Windows), riusa `STFormat.Core`.
+- [x] Apri **file** o **cartella** (ricorsiva); lista file selezionabile.
+- [x] Pannello impostazioni: indentazione spazi/tab + dimensione, ampiezza tab, case keyword, toggle allineamenti.
+- [x] Anteprima **Prima / Dopo** affiancata, aggiornata in tempo reale al cambio di file o impostazioni.
+- [x] "Formatta e salva" (file corrente) e "Formatta tutti" (cartella). I/O BOM-aware. Smoke-test di avvio OK.
+- Nota: scelto Avalonia al posto di WPF/WinForms proprio per poter sviluppare/testare dal Mac.
+
 ### Fase 5 — VSIX (su Windows)
 - [ ] Progetto VSIX per VS2022 / TcXaeShell.
 - [ ] Comando "Format Document" + toolbar + keybinding.

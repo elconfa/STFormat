@@ -14,6 +14,7 @@ delle assegnazioni, delle dichiarazioni e dei commenti, oltre a indentazione e s
 |----------|--------|-------|
 | `STFormat.Core` | netstandard2.0 | motore: lexer + formattazione (condivisibile con la VSIX) |
 | `STFormat.Cli` | net10.0 | tool a riga di comando |
+| `STFormat.Gui` | net10.0 | GUI desktop (Avalonia, multipiattaforma) |
 | `STFormat.Tests` | net10.0 | test (xUnit) |
 
 ## Principio di sicurezza
@@ -43,6 +44,14 @@ cat code.st | stformat --stdin --use-tabs
 
 Nei file XML TwinCAT viene formattato **solo** il codice ST dentro le CDATA di `<Declaration>`
 e `<ST>`; il resto dell'XML resta invariato (diff minimi, CRLF preservati).
+
+## GUI
+
+App desktop con scelta file/cartella, impostazioni e anteprima **Prima / Dopo** in tempo reale:
+
+```bash
+dotnet run --project src/STFormat.Gui
+```
 
 ## Sviluppo
 
