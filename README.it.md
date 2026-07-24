@@ -52,6 +52,14 @@ Scarica l'eseguibile **autonomo** dall'ultima [Release](../../releases/latest) �
 >   (PowerShell: `Get-FileHash stformat.exe`).
 > - **Oppure compila da sorgente** (più sotto) se preferisci non scaricare un binario.
 
+### Windows con Scoop
+Se usi [Scoop](https://scoop.sh):
+```powershell
+scoop install https://raw.githubusercontent.com/elconfa/STFormat/main/scoop/stformat.json
+```
+Installa il comando `stformat` e una scorciatoia della GUI nel menu Start. Dato che è Scoop a
+scaricare (non il browser), non compare l'avviso "questo file può essere pericoloso".
+
 ### Da sorgente (Windows / macOS / Linux)
 Serve il [.NET SDK 10](https://dotnet.microsoft.com/download).
 ```bash

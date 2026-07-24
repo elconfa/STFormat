@@ -1,0 +1,43 @@
+{
+    "version": "0.3.0",
+    "description": "Formatter for Structured Text (IEC 61131-3) — TwinCAT & CoDeSys. CLI + GUI, column alignment.",
+    "homepage": "https://github.com/elconfa/STFormat",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": [
+                "https://github.com/elconfa/STFormat/releases/download/v0.3.0/stformat.exe",
+                "https://github.com/elconfa/STFormat/releases/download/v0.3.0/STFormat-GUI.exe"
+            ],
+            "hash": [
+                "49adce3c359c9ba68ef44e6bef03f8dc91922bab1976022b10eed2208daded5a",
+                "543a80fb5988580db09503143117fa352e69b3483d578ba84a5c2f326c0ac0f6"
+            ]
+        }
+    },
+    "bin": "stformat.exe",
+    "shortcuts": [
+        [
+            "STFormat-GUI.exe",
+            "STFormat"
+        ]
+    ],
+    "notes": [
+        "Command line:  stformat --help",
+        "GUI:           launch 'STFormat' from the Start menu."
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": [
+                    "https://github.com/elconfa/STFormat/releases/download/v$version/stformat.exe",
+                    "https://github.com/elconfa/STFormat/releases/download/v$version/STFormat-GUI.exe"
+                ]
+            }
+        },
+        "hash": {
+            "url": "https://github.com/elconfa/STFormat/releases/download/v$version/SHA256SUMS.txt"
+        }
+    }
+}
