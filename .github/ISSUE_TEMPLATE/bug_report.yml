@@ -1,0 +1,49 @@
+name: Bug report
+description: A crash, an error, or wrong behaviour not related to formatting output
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: A clear description of the problem, including any error message.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce it? Include the exact command if using the CLI.
+      placeholder: |
+        1. Run `stformat --diff MyFb.TcPOU`
+        2. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: false
+  - type: dropdown
+    id: how
+    attributes:
+      label: How are you running STFormat?
+      options:
+        - Windows executable from Releases (stformat.exe)
+        - Windows executable from Releases (STFormat-GUI.exe)
+        - Built from source
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Release tag (e.g. v0.1.1) or commit hash.
+    validations:
+      required: false

@@ -120,7 +120,7 @@ dotnet test STFormat.slnx      # run the test suite
 
 Issues and feature requests are welcome via [Issues](../../issues). If some construct is formatted
 sub-optimally, attach a small before/after snippet — it's the fastest way to add the case and a
-regression test.
+regression test. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to build, test and submit changes.
 
 ## License and credits
 

@@ -1,0 +1,59 @@
+name: Formatting issue
+description: STFormat formats some Structured Text sub-optimally or incorrectly
+title: "[Formatting] "
+labels: ["formatting"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve STFormat! A small **before/after** snippet is the fastest way
+        to get a fix and a regression test. Please make the example as small as possible.
+  - type: textarea
+    id: input
+    attributes:
+      label: Input (Structured Text)
+      description: The original ST code, reduced to the minimum that reproduces the problem.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual output
+      description: What STFormat produced.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected output
+      description: What you expected instead.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: options
+    attributes:
+      label: Options used
+      description: "e.g. defaults, or: --use-tabs --tab-width 4 --keywords upper"
+      placeholder: defaults
+    validations:
+      required: false
+  - type: dropdown
+    id: source
+    attributes:
+      label: File type
+      options:
+        - .TcPOU / .TcGVL / .TcDUT (TwinCAT XML)
+        - Plain ST / CoDeSys export (.exp / .st)
+        - stdin
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Release tag (e.g. v0.1.1) or commit hash.
+    validations:
+      required: false

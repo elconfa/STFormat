@@ -117,7 +117,8 @@ dotnet test STFormat.slnx      # esegue la suite di test
 
 Segnalazioni e richieste sono benvenute tramite le [Issues](../../issues). Se un costrutto viene
 formattato in modo non ideale, allega un piccolo esempio "prima/dopo": è il modo più veloce per
-aggiungere il caso e un test di regressione.
+aggiungere il caso e un test di regressione. Vedi [CONTRIBUTING.md](CONTRIBUTING.md) per come
+compilare, testare e proporre modifiche.
 
 ## Licenza e crediti
 
