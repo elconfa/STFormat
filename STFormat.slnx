@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/STFormat.Cli/STFormat.Cli.csproj" />
+    <Project Path="src/STFormat.Core/STFormat.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/STFormat.Tests/STFormat.Tests.csproj" />
+  </Folder>
+</Solution>

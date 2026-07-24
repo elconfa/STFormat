@@ -1,0 +1,11 @@
+# Build .NET
+bin/
+obj/
+*.user
+
+# IDE
+.vs/
+.idea/
+
+# macOS
+.DS_Store
