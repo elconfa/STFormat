@@ -34,11 +34,17 @@
 - [x] Test: round-trip (concat token == sorgente) + classificazione — 35 test verdi.
 - [ ] Da valutare più avanti: opzione commenti `(* *)` non annidati; letterali `WSTRING` con `"`.
 
-### Fase 2 — Motore: formattazione base
-- [ ] Indentazione per blocchi (`IF/END_IF`, `FOR`, `WHILE`, `CASE`, `VAR/END_VAR`, ...).
-- [ ] Spaziatura attorno agli operatori e dopo virgole/`;`.
-- [ ] Normalizzazione keyword (maiuscole) e whitespace di riga.
-- [ ] Idempotenza: format(format(x)) == format(x).
+### Fase 2 — Motore: formattazione base ✅
+- [x] Indentazione per blocchi (`IndentEngine` a stack: `IF`/`ELSE`/`ELSIF`, `FOR`, `WHILE`,
+      `REPEAT`/`UNTIL`, `CASE` con etichette+`ELSE`, `VAR*/END_VAR`, `STRUCT`). POU e `TYPE` non
+      indentano (convenzione TwinCAT). Indent configurabile (default 4 spazi).
+- [x] Spaziatura attorno agli operatori, chiamate/indici/membri incollati, unario, commenti (`SpacingRules`).
+- [x] Normalizzazione keyword (`Upper`/`Lower`/`Preserve`, default Upper), trim whitespace, righe vuote
+      collassate, a-capo rilevato e preservato, singolo newline finale.
+- [x] Idempotenza + invarianza dei token significativi (mod case keyword) — test dedicati.
+- [x] 20 test formatter verdi (55 totali col lexer).
+- [ ] Limiti noti (Fase 3+): continuazioni multi-riga rese al livello del blocco; etichetta+statement
+      sulla stessa riga (`1: x:=1;`) non porta il doppio indent.
 
 ### Fase 3 — Motore: allineamento a colonne (feature STWEEP)
 - [ ] Allineare `:=` in blocchi di assegnazioni consecutive.
