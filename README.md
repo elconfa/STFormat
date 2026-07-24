@@ -22,11 +22,34 @@ Il motore parte da un **lexer lossless**: riconcatenando i token si riottiene il
 identico. La formattazione può modificare solo la *trivia* (spazi, a-capo), mai i token di
 codice — così lo stile cambia ma la semantica resta invariata.
 
+## Uso (CLI)
+
+```bash
+# Formatta in-place file e/o cartelle (ricorsione su .TcPOU/.TcGVL/.TcDUT/.TcIO/.exp/.st)
+stformat src/
+
+# Anteprima senza scrivere
+stformat --diff MyFb.TcPOU
+stformat --stdout MyFb.TcPOU
+
+# CI: esce con codice 1 se qualcosa cambierebbe
+stformat --check src/
+
+# Da stdin (ST puro, es. file CoDeSys)
+cat code.st | stformat --stdin --use-tabs
+
+# Opzioni stile: --use-tabs  --indent-size N  --tab-width N  --keywords upper|lower|preserve
+```
+
+Nei file XML TwinCAT viene formattato **solo** il codice ST dentro le CDATA di `<Declaration>`
+e `<ST>`; il resto dell'XML resta invariato (diff minimi, CRLF preservati).
+
 ## Sviluppo
 
 ```bash
 dotnet build STFormat.slnx
 dotnet test  STFormat.slnx
+dotnet run --project src/STFormat.Cli -- --help
 ```
 
 La **VSIX** e l'integrazione con la TwinCAT Automation Interface vanno compilate e testate

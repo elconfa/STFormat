@@ -57,11 +57,16 @@
 - [x] Idempotenza mantenuta; 10 test allineamento (65 totali).
 - [ ] Allineare parametri `:=`/`=>` nelle chiamate FB **multi-riga** (rimandato).
 
-### Fase 4 — CLI
-- [ ] Input: file singolo, glob, cartella, progetto.
-- [ ] Parsing `.TcPOU`/`.TcGVL`/`.TcDUT` (XML) → estrai/reinietta ST in Declaration + Implementation.
-- [ ] Parsing export CoDeSys `.exp`.
-- [ ] `--check` (exit code per CI), `--diff`, safe mode.
+### Fase 4 — CLI ✅
+- [x] Input: file singoli e cartelle (ricorsione su `.TcPOU/.TcGVL/.TcDUT/.TcIO/.exp/.st`).
+- [x] File XML TwinCAT: `TcPouFormatter` sostituisce SOLO il codice ST dentro le CDATA di
+      `<Declaration>` e `<ST>` (diff minimi, XML preservato, CRLF e newline finale rispettati).
+- [x] Export CoDeSys / ST puro: formattazione dell'intero contenuto.
+- [x] Modalità: default in-place, `--check` (exit 1 per CI), `--diff` (LCS unificato), `--stdout`, `--stdin`.
+- [x] Opzioni stile: `--use-tabs`, `--indent-size`, `--tab-width`, `--keywords`. I/O BOM-aware.
+- [x] Eseguibile `stformat`. 4 test TcPouFormatter (69 totali). Provato end-to-end su .TcPOU e stdin.
+- [ ] "Safe mode" con build TwinCAT prima/dopo: non fattibile su Mac (rimandato a Windows/VSIX);
+      la sicurezza qui è data dall'invarianza dei token significativi.
 
 ### Fase 5 — VSIX (su Windows)
 - [ ] Progetto VSIX per VS2022 / TcXaeShell.
