@@ -80,6 +80,7 @@ formatted; the rest of the XML is left untouched (minimal diffs, CRLF preserved)
 ## Usage — graphical interface
 
 Pick a file or folder, tweak the settings, and see a live **Before / After** preview.
+The interface is available in **English, Italian and German** (language selector in the toolbar).
 Run `STFormat-GUI.exe`, or from source:
 ```bash
 dotnet run --project src/STFormat.Gui

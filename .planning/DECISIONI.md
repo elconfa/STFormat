@@ -76,7 +76,9 @@
 - [x] Pannello impostazioni: indentazione spazi/tab + dimensione, ampiezza tab, case keyword, toggle allineamenti.
 - [x] Anteprima **Prima / Dopo** affiancata, aggiornata in tempo reale al cambio di file o impostazioni.
 - [x] "Formatta e salva" (file corrente) e "Formatta tutti" (cartella). I/O BOM-aware. Smoke-test di avvio OK.
+- [x] Localizzazione UI **IT / EN / DE** con selettore in toolbar (`Localization.cs`, lingua iniziale dalla cultura di sistema).
 - Nota: scelto Avalonia al posto di WPF/WinForms proprio per poter sviluppare/testare dal Mac.
+- [ ] Localizzazione anche della CLI (`--lang`) — rimandato (per ora messaggi in italiano).
 
 ### Fase 5 — VSIX (su Windows)
 - [ ] Progetto VSIX per VS2022 / TcXaeShell.

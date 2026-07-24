@@ -40,6 +40,48 @@ public partial class MainWindow : Window
         ChkAlignDecl.IsCheckedChanged += (_, _) => UpdatePreview();
         ChkAlignAssign.IsCheckedChanged += (_, _) => UpdatePreview();
         ChkAlignComments.IsCheckedChanged += (_, _) => UpdatePreview();
+
+        // Lingua: iniziale dalla cultura di sistema, poi selezionabile dal menu a tendina.
+        Loc.Current = Loc.Detect();
+        CbLang.SelectionChanged += (_, _) =>
+        {
+            Loc.Current = (Lang)CbLang.SelectedIndex;
+            ApplyLanguage();
+        };
+        CbLang.SelectedIndex = (int)Loc.Current;
+        ApplyLanguage();
+    }
+
+    // ---- Localizzazione ----
+
+    private void ApplyLanguage()
+    {
+        BtnOpenFile.Content = Loc.T("open_file");
+        BtnOpenFolder.Content = Loc.T("open_folder");
+        BtnSave.Content = Loc.T("save_current");
+        BtnSaveAll.Content = Loc.T("save_all");
+
+        TxtSettings.Text = Loc.T("settings");
+        TxtIndentation.Text = Loc.T("indentation");
+        RbSpaces.Content = Loc.T("spaces");
+        RbTabs.Content = Loc.T("tabs");
+        TxtSize.Text = Loc.T("size");
+        TxtTabWidth.Text = Loc.T("tab_width");
+        TxtKeywords.Text = Loc.T("keywords");
+        KwUpper.Content = Loc.T("kw_upper");
+        KwLower.Content = Loc.T("kw_lower");
+        KwPreserve.Content = Loc.T("kw_preserve");
+        TxtAlignHeader.Text = Loc.T("alignment_header");
+        ChkAlignDecl.Content = Loc.T("align_decl");
+        ChkAlignAssign.Content = Loc.T("align_assign");
+        ChkAlignComments.Content = Loc.T("align_comments");
+        TxtFilesHeader.Text = Loc.T("files");
+
+        TxtBeforeHeader.Text = Loc.T("before");
+        TxtAfterHeader.Text = Loc.T("after");
+
+        if (_currentPath is null) TxtStatus.Text = Loc.T("start_hint");
+        else UpdatePreview();
     }
 
     // ---- Apertura ----
@@ -48,7 +90,7 @@ public partial class MainWindow : Window
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Scegli un file da formattare",
+            Title = Loc.T("pick_file"),
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
@@ -56,7 +98,7 @@ public partial class MainWindow : Window
                 {
                     Patterns = new[] { "*.TcPOU", "*.TcGVL", "*.TcDUT", "*.TcIO", "*.exp", "*.st" }
                 },
-                new FilePickerFileType("Tutti i file") { Patterns = new[] { "*" } }
+                new FilePickerFileType(Loc.T("filter_all")) { Patterns = new[] { "*" } }
             }
         });
 
@@ -71,7 +113,7 @@ public partial class MainWindow : Window
     {
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Scegli una cartella (ricorsiva)",
+            Title = Loc.T("pick_folder"),
             AllowMultiple = false
         });
 
@@ -86,11 +128,7 @@ public partial class MainWindow : Window
         found.Sort(StringComparer.OrdinalIgnoreCase);
 
         if (found.Count == 0)
-        {
-            TxtStatus.Text = "Nessun file .TcPOU/.TcGVL/.TcDUT/.TcIO/.exp/.st trovato nella cartella.";
-            SetFileList(found);
-            return;
-        }
+            TxtStatus.Text = Loc.T("no_files");
         SetFileList(found);
     }
 
@@ -125,7 +163,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            TxtStatus.Text = "Errore in lettura: " + ex.Message;
+            TxtStatus.Text = string.Format(Loc.T("read_error"), ex.Message);
         }
     }
 
@@ -144,13 +182,13 @@ public partial class MainWindow : Window
 
         string name = Path.GetFileName(_currentPath);
         TxtStatus.Text = _currentAfter != _currentOriginal
-            ? name + " — verrà modificato dal salvataggio"
-            : name + " — già formattato";
+            ? string.Format(Loc.T("will_change"), name)
+            : string.Format(Loc.T("already_ok"), name);
     }
 
     private FormatOptions BuildOptions()
     {
-        var o = new FormatOptions
+        return new FormatOptions
         {
             IndentUnit = RbTabs.IsChecked == true
                 ? "\t"
@@ -166,7 +204,6 @@ public partial class MainWindow : Window
             AlignAssignments = ChkAlignAssign.IsChecked == true,
             AlignTrailingComments = ChkAlignComments.IsChecked == true
         };
-        return o;
     }
 
     private static string FormatText(string text, string path, FormatOptions opts)
@@ -185,11 +222,11 @@ public partial class MainWindow : Window
         {
             WriteText(_currentPath, _currentAfter, _currentBom);
             _currentOriginal = _currentAfter;
-            TxtStatus.Text = "Salvato: " + Path.GetFileName(_currentPath);
+            TxtStatus.Text = string.Format(Loc.T("saved"), Path.GetFileName(_currentPath));
         }
         catch (Exception ex)
         {
-            TxtStatus.Text = "Errore in scrittura: " + ex.Message;
+            TxtStatus.Text = string.Format(Loc.T("write_error"), ex.Message);
         }
     }
 
@@ -215,10 +252,10 @@ public partial class MainWindow : Window
             catch { errors++; }
         }
 
-        TxtStatus.Text = $"Tutti formattati — {changed} modificati, {unchanged} già a posto"
-                         + (errors > 0 ? $", {errors} errori" : "");
+        string msg = string.Format(Loc.T("save_all_result"), changed, unchanged);
+        if (errors > 0) msg += string.Format(Loc.T("errors_suffix"), errors);
+        TxtStatus.Text = msg;
 
-        // Ricarica l'anteprima del file corrente (ora salvato).
         LoadSelected();
     }
 

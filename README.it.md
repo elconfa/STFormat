@@ -77,6 +77,7 @@ cat code.st | stformat --stdin
 ## Uso — interfaccia grafica
 
 Scelta file/cartella, pannello impostazioni e anteprima **Prima / Dopo** in tempo reale.
+L'interfaccia è disponibile in **italiano, inglese e tedesco** (selettore in alto).
 Dall'eseguibile `STFormat-GUI.exe`, oppure da sorgente:
 ```bash
 dotnet run --project src/STFormat.Gui
