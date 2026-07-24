@@ -13,6 +13,7 @@ namespace STFormat.Core.Formatting
         Declaration, // dentro VAR/STRUCT, con ':' di livello 0
         Assignment,  // statement "lhs := rhs ;" con ':=' di livello 0
         EnumMember,  // membro di ENUM: "NAME := valore ," (allineato come le assegnazioni)
+        CallParam,   // parametro di chiamata FB multi-riga: "NAME := / => valore ,"
         Normal
     }
 
@@ -58,6 +59,19 @@ namespace STFormat.Core.Formatting
                 if (emit[i].Kind != TokenKind.Operator) continue;
                 depth += BracketDelta(emit[i].Text);
                 if (depth == 0 && emit[i].Text == ":=") return i;
+            }
+            return -1;
+        }
+
+        /// <summary>Indice del primo ':=' o '=>' di livello 0, o -1 (per i parametri di chiamata).</summary>
+        public static int FindArrowOrAssign(IReadOnlyList<Token> emit)
+        {
+            int depth = 0;
+            for (int i = 0; i < emit.Count; i++)
+            {
+                if (emit[i].Kind != TokenKind.Operator) continue;
+                depth += BracketDelta(emit[i].Text);
+                if (depth == 0 && (emit[i].Text == ":=" || emit[i].Text == "=>")) return i;
             }
             return -1;
         }
@@ -136,7 +150,7 @@ namespace STFormat.Core.Formatting
                 }
                 else
                 {
-                    a[0] = FindTopAssign(emit);
+                    a[0] = FindArrowOrAssign(emit); // ':=' per assegnazioni/enum, ':='/'=>' per parametri
                     a[1] = TrailingCommentIndex(emit);
                 }
                 anchors[li] = a;

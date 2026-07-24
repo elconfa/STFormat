@@ -57,7 +57,10 @@
 - [x] Idempotenza mantenuta; 10 test allineamento (65 totali).
 - [x] ENUM `TYPE Name : ( ... ) BASE;`: membri indentati e allineati (`:=` + commenti) con tab
       (`IndentEngine` traccia `TYPE` e il corpo `( )` come `EnumBody`; classe riga `EnumMember`).
-- [ ] Allineare parametri `:=`/`=>` nelle chiamate FB **multi-riga** (rimandato).
+- [x] Allineare parametri `:=`/`=>` nelle chiamate FB **multi-riga**: righe di continuazione rientrate
+      (+1) e `:=`/`=>` allineati a colonne (`IndentEngine` con stack di parentesi unificato per enum e
+      chiamate; classe riga `CallParam`). Nota: se il primo parametro è sulla riga di chiamata resta
+      non allineato con le continuazioni (limite noto).
 
 ### Fase 4 — CLI ✅
 - [x] Input: file singoli e cartelle (ricorsione su `.TcPOU/.TcGVL/.TcDUT/.TcIO/.exp/.st`).

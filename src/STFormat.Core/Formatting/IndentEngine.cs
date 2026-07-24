@@ -19,29 +19,33 @@ namespace STFormat.Core.Formatting
         /// <summary>True se la riga è un membro dentro il corpo di un ENUM ( ... ).</summary>
         public bool InEnumBody { get; }
 
-        public LineLayout(int level, bool isCaseLabel, bool inDeclarationBlock, bool inEnumBody)
+        /// <summary>True se la riga è un parametro dentro una chiamata/espressione multi-riga fra parentesi.</summary>
+        public bool InCallArgs { get; }
+
+        public LineLayout(int level, bool isCaseLabel, bool inDeclarationBlock, bool inEnumBody, bool inCallArgs)
         {
             Level = level;
             IsCaseLabel = isCaseLabel;
             InDeclarationBlock = inDeclarationBlock;
             InEnumBody = inEnumBody;
+            InCallArgs = inCallArgs;
         }
     }
 
     /// <summary>
-    /// Calcola l'indentazione riga per riga tramite uno stack di blocchi aperti.
-    /// Non è un parser: riconosce le keyword strutturali (IF/FOR/WHILE/REPEAT/CASE, VAR*, STRUCT)
-    /// e i loro END_*, i "mid" ELSE/ELSIF/UNTIL, le etichette di CASE, e il corpo degli ENUM
-    /// definiti con "TYPE Name : ( ... ) BASE;".
-    /// Le intestazioni di POU (FUNCTION_BLOCK, PROGRAM, ...) e TYPE non indentano il proprio corpo,
-    /// secondo la convenzione TwinCAT.
+    /// Calcola l'indentazione riga per riga tramite uno stack di blocchi aperti e uno stack di
+    /// parentesi aperte (per le continuazioni multi-riga: corpo ENUM e parametri di chiamata FB).
+    /// Non è un parser: riconosce le keyword strutturali e i loro END_*, i "mid" ELSE/ELSIF/UNTIL,
+    /// le etichette di CASE, e le continuazioni fra parentesi.
+    /// Le intestazioni di POU e TYPE non indentano il proprio corpo (convenzione TwinCAT).
     /// </summary>
     public sealed class IndentEngine
     {
-        private enum FrameType { DeclBlock, CtrlBlock, EnumBody, Case, CaseArm }
+        private enum FrameType { DeclBlock, CtrlBlock, Case, CaseArm }
 
         private readonly List<FrameType> _stack = new List<FrameType>();
-        private int _typeDepth; // profondità dei blocchi TYPE ... END_TYPE aperti
+        private readonly List<bool> _parens = new List<bool>(); // per ogni '(' aperta: true se corpo ENUM
+        private int _typeDepth;
 
         private static readonly HashSet<string> DeclOpeners =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -65,9 +69,10 @@ namespace STFormat.Core.Formatting
                 "END_IF", "END_FOR", "END_WHILE", "END_REPEAT", "END_CASE"
             };
 
-        private int Depth => _stack.Count;
-
+        private int BlockDepth => _stack.Count;
+        private int ParenDepth => _parens.Count;
         private FrameType? Top => _stack.Count > 0 ? _stack[_stack.Count - 1] : (FrameType?)null;
+        private bool TopParenIsEnum() => _parens.Count > 0 && _parens[_parens.Count - 1];
 
         private void Push(FrameType f) => _stack.Add(f);
 
@@ -76,84 +81,76 @@ namespace STFormat.Core.Formatting
             if (_stack.Count > 0) _stack.RemoveAt(_stack.Count - 1);
         }
 
-        /// <summary>
-        /// Calcola il layout della riga (indent + flag) a partire dai suoi token significativi
-        /// (senza trivia), aggiornando lo stato per le righe successive.
-        /// </summary>
         public LineLayout ProcessLine(IReadOnlyList<Token> significant)
         {
             if (significant.Count == 0)
-                return new LineLayout(Depth, false, Top == FrameType.DeclBlock, Top == FrameType.EnumBody);
+                return new LineLayout(BlockDepth + ParenDepth, false, Top == FrameType.DeclBlock,
+                    TopParenIsEnum(), ParenDepth > 0 && !TopParenIsEnum());
 
-            // Chiusura del corpo ENUM: la riga ")..." si dedenta al livello dell'apertura.
-            if (Top == FrameType.EnumBody && NetParen(significant) < 0)
+            // --- Continuazione fra parentesi (parametri di chiamata / membri di enum / espressioni) ---
+            if (ParenDepth > 0)
             {
-                Pop();
-                return new LineLayout(Max0(Depth), false, false, false);
+                int leadClose = LeadingCloseParens(significant);
+                int render = BlockDepth + Max0(ParenDepth - leadClose);
+                bool closesLine = leadClose > 0;
+                bool inEnum = !closesLine && TopParenIsEnum();
+                bool inCall = !closesLine && !TopParenIsEnum();
+                UpdateParens(significant);
+                return new LineLayout(Max0(render), false, false, inEnum, inCall);
             }
 
             Token first = significant[0];
             string? kw = first.Kind == TokenKind.Keyword ? first.Text.ToUpperInvariant() : null;
 
-            // Chiusura di blocco: la riga si dedenta al livello dell'apertura.
             if (kw != null && Closers.Contains(kw))
             {
-                if (kw == "END_CASE" && Top == FrameType.CaseArm) Pop(); // arm pendente
+                if (kw == "END_CASE" && Top == FrameType.CaseArm) Pop();
                 Pop();
-                int r = Depth;
+                int r = BlockDepth;
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(r), false, false, false);
+                return new LineLayout(Max0(r), false, false, false, false);
             }
 
-            // ELSE: o "else" di un IF, o "else" di un CASE (in base al frame in cima).
             if (kw == "ELSE")
             {
                 if (Top == FrameType.CaseArm)
                 {
                     Pop();
-                    int r = Depth;
+                    int r = BlockDepth;
                     Push(FrameType.CaseArm);
                     ApplyStructural(significant, 1);
-                    return new LineLayout(Max0(r), false, false, false);
+                    return new LineLayout(Max0(r), false, false, false, false);
                 }
 
-                int rIf = Depth - 1;
+                int rIf = BlockDepth - 1;
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(rIf), false, false, false);
+                return new LineLayout(Max0(rIf), false, false, false, false);
             }
 
             if (kw == "ELSIF" || kw == "UNTIL")
             {
-                int r = Depth - 1;
+                int r = BlockDepth - 1;
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(r), false, false, false);
+                return new LineLayout(Max0(r), false, false, false, false);
             }
 
-            // Etichetta di CASE: dentro un CASE, riga che termina con ':'.
             bool inCase = Top == FrameType.Case || Top == FrameType.CaseArm;
             if (inCase && IsCaseLabel(significant))
             {
                 if (Top == FrameType.CaseArm) Pop();
-                int r = Depth;
+                int r = BlockDepth;
                 Push(FrameType.CaseArm);
-                return new LineLayout(Max0(r), true, false, false);
+                return new LineLayout(Max0(r), true, false, false, false);
             }
 
-            // Riga normale.
+            // Riga normale (fuori dalle parentesi).
             bool inDecl = Top == FrameType.DeclBlock;
-            bool inEnum = Top == FrameType.EnumBody;
-            int render = Depth;
-
+            int render2 = BlockDepth;
             ApplyStructural(significant, 0);
-
-            // Apertura del corpo ENUM: dentro un TYPE, una riga che apre più parentesi di quante ne chiude.
-            if (_typeDepth > 0 && Top != FrameType.EnumBody && NetParen(significant) > 0)
-                Push(FrameType.EnumBody);
-
-            return new LineLayout(Max0(render), false, inDecl, inEnum);
+            UpdateParens(significant); // eventuali '(' aperte qui iniziano una continuazione
+            return new LineLayout(Max0(render2), false, inDecl, false, false);
         }
 
-        /// <summary>Applica allo stato le keyword strutturali della riga (aperture/chiusure, TYPE).</summary>
         private void ApplyStructural(IReadOnlyList<Token> sig, int start)
         {
             for (int i = start; i < sig.Count; i++)
@@ -174,22 +171,39 @@ namespace STFormat.Core.Formatting
             }
         }
 
+        // Apre/chiude le parentesi incontrate sulla riga (per l'indentazione delle righe successive).
+        private void UpdateParens(IReadOnlyList<Token> sig)
+        {
+            foreach (Token t in sig)
+            {
+                if (t.Kind != TokenKind.Operator) continue;
+                if (t.Text == "(")
+                {
+                    bool isEnum = _typeDepth > 0 && _parens.Count == 0; // parentesi esterna dentro un TYPE = enum
+                    _parens.Add(isEnum);
+                }
+                else if (t.Text == ")")
+                {
+                    if (_parens.Count > 0) _parens.RemoveAt(_parens.Count - 1);
+                }
+            }
+        }
+
+        private static int LeadingCloseParens(IReadOnlyList<Token> sig)
+        {
+            int n = 0;
+            foreach (Token t in sig)
+            {
+                if (t.Kind == TokenKind.Operator && t.Text == ")") n++;
+                else break;
+            }
+            return n;
+        }
+
         private static bool IsCaseLabel(IReadOnlyList<Token> sig)
         {
             Token last = sig[sig.Count - 1];
             return last.Kind == TokenKind.Operator && last.Text == ":";
-        }
-
-        private static int NetParen(IReadOnlyList<Token> sig)
-        {
-            int net = 0;
-            foreach (Token t in sig)
-            {
-                if (t.Kind != TokenKind.Operator) continue;
-                if (t.Text == "(") net++;
-                else if (t.Text == ")") net--;
-            }
-            return net;
         }
 
         private static int Max0(int x) => x < 0 ? 0 : x;

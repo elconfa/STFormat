@@ -147,6 +147,39 @@ namespace STFormat.Tests.Formatting
         }
 
         [Fact]
+        public void Multiline_fb_call_params_are_indented_and_aligned()
+        {
+            string input = "fbTon(\nIN:=bStart,\nPT:=T#5s,\nQ=>bDone);\n";
+            string expected =
+                "fbTon(\n" +
+                "    IN\t:= bStart,\n" +
+                "    PT\t:= T#5s,\n" +
+                "    Q\t=> bDone);\n";
+            Assert.Equal(expected, Fmt(input));
+        }
+
+        [Fact]
+        public void Multiline_fb_call_inside_block_restores_indent_after_close()
+        {
+            string input = "IF bStart THEN\nfbTon(IN:=bStart,\nPT:=T#5s,\nQ=>bDone);\nnCount:=nCount+1;\nEND_IF\n";
+            string expected =
+                "IF bStart THEN\n" +
+                "    fbTon(IN := bStart,\n" +
+                "        PT\t:= T#5s,\n" +
+                "        Q\t=> bDone);\n" +
+                "    nCount := nCount + 1;\n" +
+                "END_IF\n";
+            Assert.Equal(expected, Fmt(input));
+        }
+
+        [Fact]
+        public void Multiline_fb_call_is_idempotent()
+        {
+            string once = Fmt("fbTon(\nIN:=bStart,\nPT:=T#5s,\nQ=>bDone);\n");
+            Assert.Equal(once, Fmt(once));
+        }
+
+        [Fact]
         public void Alignment_is_idempotent()
         {
             string once = Fmt(AlignSample);

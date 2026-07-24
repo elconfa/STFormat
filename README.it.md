@@ -25,7 +25,7 @@ Un enum reale, prima e dopo `stformat` (allineamento di `:=` e dei commenti a co
 - **Indentazione** per blocchi (`IF/ELSE/ELSIF`, `FOR`, `WHILE`, `REPEAT/UNTIL`, `CASE` con etichette, `VAR*`, `STRUCT`, enum `TYPE … ( … )`).
 - **Spaziatura** consistente attorno a operatori, chiamate, indici, membri, segno unario.
 - **Normalizzazione keyword** (MAIUSCOLE / minuscole / invariate).
-- **Allineamento a colonne con TAB** di `:` e `:=` nelle dichiarazioni, `:=` nelle assegnazioni e nei membri di enum, e dei commenti a fine riga.
+- **Allineamento a colonne con TAB** di `:` e `:=` nelle dichiarazioni, `:=` nelle assegnazioni e nei membri di enum, dei parametri `:=`/`=>` nelle chiamate FB multi-riga, e dei commenti a fine riga.
 - Lavora direttamente sui file **`.TcPOU` / `.TcGVL` / `.TcDUT`** di TwinCAT (formatta solo il codice ST dentro le CDATA — diff minimi, CRLF preservati) e sugli **export CoDeSys** / ST puro.
 - Modalità **`--check`** per CI/pre-commit, **`--diff`**, elaborazione ricorsiva di cartelle.
 
@@ -111,7 +111,6 @@ dotnet test STFormat.slnx      # esegue la suite di test
 ## Roadmap
 
 - Plugin **VSIX** per l'editor di TwinCAT XAE 4026 (comando "Format Document"), riusando `STFormat.Core`.
-- Allineamento dei parametri nelle chiamate FB multi-riga.
 - Distribuzione via `dotnet tool` e winget.
 
 ## Contribuire

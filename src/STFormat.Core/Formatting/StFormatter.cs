@@ -70,6 +70,8 @@ namespace STFormat.Core.Formatting
 
             if (layout.InEnumBody) return LineClass.EnumMember;
 
+            if (layout.InCallArgs) return LineClass.CallParam;
+
             if (layout.InDeclarationBlock && !model.IsCaseLabel && Aligner.FindDeclColon(emit) >= 0)
                 return LineClass.Declaration;
 
@@ -116,6 +118,12 @@ namespace STFormat.Core.Formatting
                 else if (m.Class == LineClass.EnumMember && alignAsn)
                 {
                     int j = RunEnd(models, i, LineClass.EnumMember);
+                    EmitGroup(outLines, models, i, j, false, options);
+                    i = j;
+                }
+                else if (m.Class == LineClass.CallParam && alignAsn)
+                {
+                    int j = RunEnd(models, i, LineClass.CallParam);
                     EmitGroup(outLines, models, i, j, false, options);
                     i = j;
                 }
