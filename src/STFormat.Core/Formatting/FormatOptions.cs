@@ -25,6 +25,19 @@ namespace STFormat.Core.Formatting
         /// ("\r\n" se presente, altrimenti "\n"), con fallback a "\r\n".</summary>
         public string? NewLine { get; set; } = null;
 
+        /// <summary>Ampiezza di un tab in colonne, per il calcolo dell'allineamento. Default: 4
+        /// (come TwinCAT). L'allineamento a colonne è riempito con TAB, mai con spazi.</summary>
+        public int TabWidth { get; set; } = 4;
+
+        /// <summary>Allinea ':' e ':=' nelle dichiarazioni consecutive dei blocchi VAR/STRUCT.</summary>
+        public bool AlignDeclarations { get; set; } = true;
+
+        /// <summary>Allinea ':=' nelle assegnazioni consecutive.</summary>
+        public bool AlignAssignments { get; set; } = true;
+
+        /// <summary>Allinea i commenti a fine riga nei gruppi di dichiarazioni/assegnazioni.</summary>
+        public bool AlignTrailingComments { get; set; } = true;
+
         public static FormatOptions Default => new FormatOptions();
     }
 }

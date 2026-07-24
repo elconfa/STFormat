@@ -13,10 +13,14 @@ namespace STFormat.Core.Formatting
         /// <summary>True se la riga è un'etichetta di CASE (per la spaziatura del ':' finale).</summary>
         public bool IsCaseLabel { get; }
 
-        public LineLayout(int level, bool isCaseLabel)
+        /// <summary>True se la riga è dentro un blocco di dichiarazione (VAR*/STRUCT/UNION).</summary>
+        public bool InDeclarationBlock { get; }
+
+        public LineLayout(int level, bool isCaseLabel, bool inDeclarationBlock)
         {
             Level = level;
             IsCaseLabel = isCaseLabel;
+            InDeclarationBlock = inDeclarationBlock;
         }
     }
 
@@ -29,17 +33,24 @@ namespace STFormat.Core.Formatting
     /// </summary>
     public sealed class IndentEngine
     {
-        private enum FrameType { Block, Case, CaseArm }
+        private enum FrameType { DeclBlock, CtrlBlock, Case, CaseArm }
 
         private readonly List<FrameType> _stack = new List<FrameType>();
 
-        private static readonly HashSet<string> BlockOpeners =
+        // Blocchi di dichiarazione (le cui righe interne sono candidate all'allineamento).
+        private static readonly HashSet<string> DeclOpeners =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
                 "VAR", "VAR_INPUT", "VAR_OUTPUT", "VAR_IN_OUT", "VAR_TEMP",
                 "VAR_GLOBAL", "VAR_EXTERNAL", "VAR_STAT", "VAR_INST",
                 "VAR_CONFIG", "VAR_ACCESS",
-                "STRUCT", "UNION",
+                "STRUCT", "UNION"
+            };
+
+        // Blocchi di controllo del flusso.
+        private static readonly HashSet<string> CtrlOpeners =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
                 "IF", "FOR", "WHILE", "REPEAT"
             };
 
@@ -62,13 +73,13 @@ namespace STFormat.Core.Formatting
         }
 
         /// <summary>
-        /// Calcola il layout della riga (indent + flag etichetta) a partire dai suoi token
-        /// significativi (senza trivia), aggiornando lo stack per le righe successive.
+        /// Calcola il layout della riga (indent + flag) a partire dai suoi token significativi
+        /// (senza trivia), aggiornando lo stack per le righe successive.
         /// </summary>
         public LineLayout ProcessLine(IReadOnlyList<Token> significant)
         {
             if (significant.Count == 0)
-                return new LineLayout(Depth, false); // riga vuota o solo-commento: indent corrente
+                return new LineLayout(Depth, false, Top == FrameType.DeclBlock);
 
             Token first = significant[0];
             string? kw = first.Kind == TokenKind.Keyword ? first.Text.ToUpperInvariant() : null;
@@ -80,7 +91,7 @@ namespace STFormat.Core.Formatting
                 Pop();
                 int r = Depth;
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(r), false);
+                return new LineLayout(Max0(r), false, false);
             }
 
             // ELSE: o "else" di un IF, o "else" di un CASE (in base al frame in cima).
@@ -92,26 +103,26 @@ namespace STFormat.Core.Formatting
                     int r = Depth;               // livello etichette del CASE
                     Push(FrameType.CaseArm);     // apre il corpo dell'else
                     ApplyStructural(significant, 1);
-                    return new LineLayout(Max0(r), false);
+                    return new LineLayout(Max0(r), false, false);
                 }
 
                 int rIf = Depth - 1;             // dedent al livello dell'IF
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(rIf), false);
+                return new LineLayout(Max0(rIf), false, false);
             }
 
             if (kw == "ELSIF")
             {
                 int r = Depth - 1;
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(r), false);
+                return new LineLayout(Max0(r), false, false);
             }
 
             if (kw == "UNTIL")
             {
                 int r = Depth - 1;
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(r), false);
+                return new LineLayout(Max0(r), false, false);
             }
 
             // Etichetta di CASE: dentro un CASE, riga che termina con ':'.
@@ -121,13 +132,14 @@ namespace STFormat.Core.Formatting
                 if (Top == FrameType.CaseArm) Pop(); // chiude l'arm precedente
                 int r = Depth;                       // livello etichette
                 Push(FrameType.CaseArm);             // apre il corpo dell'etichetta
-                return new LineLayout(Max0(r), true);
+                return new LineLayout(Max0(r), true, false);
             }
 
             // Riga normale: rende al livello corrente e applica eventuali aperture/chiusure.
+            bool inDecl = Top == FrameType.DeclBlock;
             int render = Depth;
             ApplyStructural(significant, 0);
-            return new LineLayout(Max0(render), false);
+            return new LineLayout(Max0(render), false, inDecl);
         }
 
         /// <summary>Applica allo stack le keyword strutturali della riga (aperture/chiusure).</summary>
@@ -138,14 +150,9 @@ namespace STFormat.Core.Formatting
                 if (sig[i].Kind != TokenKind.Keyword) continue;
                 string k = sig[i].Text.ToUpperInvariant();
 
-                if (k == "CASE")
-                {
-                    Push(FrameType.Case);
-                }
-                else if (BlockOpeners.Contains(k))
-                {
-                    Push(FrameType.Block);
-                }
+                if (k == "CASE") Push(FrameType.Case);
+                else if (DeclOpeners.Contains(k)) Push(FrameType.DeclBlock);
+                else if (CtrlOpeners.Contains(k)) Push(FrameType.CtrlBlock);
                 else if (Closers.Contains(k))
                 {
                     if (k == "END_CASE" && Top == FrameType.CaseArm) Pop();

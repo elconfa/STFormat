@@ -113,8 +113,9 @@ namespace STFormat.Tests.Formatting
         [Fact]
         public void Indents_var_block_contents()
         {
+            // I membri consecutivi vengono allineati a colonne con TAB (':' e ':=').
             string input = "VAR\nnA:INT:=5;\nbEnable:BOOL;\nEND_VAR\n";
-            string expected = "VAR\n    nA : INT := 5;\n    bEnable : BOOL;\nEND_VAR\n";
+            string expected = "VAR\n    nA\t\t: INT\t:= 5;\n    bEnable\t: BOOL;\nEND_VAR\n";
             Assert.Equal(expected, Fmt(input));
         }
 
@@ -125,8 +126,8 @@ namespace STFormat.Tests.Formatting
             string expected =
                 "TYPE ST_Data :\n" +
                 "STRUCT\n" +
-                "    a : INT;\n" +
-                "    b : BOOL;\n" +
+                "    a\t: INT;\n" +
+                "    b\t: BOOL;\n" +
                 "END_STRUCT\n" +
                 "END_TYPE\n";
             Assert.Equal(expected, Fmt(input));

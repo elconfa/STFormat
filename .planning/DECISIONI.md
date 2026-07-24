@@ -46,11 +46,16 @@
 - [ ] Limiti noti (Fase 3+): continuazioni multi-riga rese al livello del blocco; etichetta+statement
       sulla stessa riga (`1: x:=1;`) non porta il doppio indent.
 
-### Fase 3 — Motore: allineamento a colonne (feature STWEEP)
-- [ ] Allineare `:=` in blocchi di assegnazioni consecutive.
-- [ ] Allineare `:` e `:=` nelle dichiarazioni `VAR`.
-- [ ] Allineare commenti `//` a fine riga.
-- [ ] Allineare parametri `:=`/`=>` nelle chiamate FB multi-riga.
+### Fase 3 — Motore: allineamento a colonne (feature STWEEP) ✅
+- [x] **Riempimento con TAB, mai spazi** (requisito): anchor portati su tab stop (multipli di `TabWidth`,
+      default 4). Gli spazi "normali" fra token restano spazi.
+- [x] Allineare `:` e `:=` nelle dichiarazioni `VAR`/`STRUCT` consecutive (`Aligner`).
+- [x] Allineare `:=` in blocchi di assegnazioni consecutive (livello parentesi 0; i `:=` dei
+      parametri nelle chiamate FB NON vengono trattati come assegnazioni).
+- [x] Allineare commenti a fine riga nei gruppi.
+- [x] Gruppi di 1 riga non vengono tab-allineati; allineamento disattivabile via `FormatOptions`.
+- [x] Idempotenza mantenuta; 10 test allineamento (65 totali).
+- [ ] Allineare parametri `:=`/`=>` nelle chiamate FB **multi-riga** (rimandato).
 
 ### Fase 4 — CLI
 - [ ] Input: file singolo, glob, cartella, progetto.
