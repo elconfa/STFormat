@@ -43,6 +43,14 @@ Download the **standalone** executable from the latest [Release](../../releases/
 - `stformat.exe` (command line)
 - `STFormat-GUI.exe` (graphical interface)
 
+> **"Windows protected your PC" / "this file could be dangerous"?**
+> The executables aren't code-signed yet (common for small open-source tools), so Windows SmartScreen
+> and browsers warn about an unknown publisher. The full source is public — you can verify or build it yourself:
+> - **Run it:** on the SmartScreen dialog click *More info → Run anyway*; in the browser choose *Keep*.
+> - **Verify the download:** compare its SHA-256 against `SHA256SUMS.txt` in the release
+>   (PowerShell: `Get-FileHash stformat.exe`).
+> - **Or build from source** (see below) if you'd rather not download a binary.
+
 ### From source (Windows / macOS / Linux)
 Requires the [.NET SDK 10](https://dotnet.microsoft.com/download).
 ```bash

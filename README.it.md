@@ -43,6 +43,15 @@ Scarica l'eseguibile **autonomo** dall'ultima [Release](../../releases/latest) �
 - `stformat.exe` (riga di comando)
 - `STFormat-GUI.exe` (interfaccia grafica)
 
+> **Windows dice "PC protetto" o "questo file può essere pericoloso"?**
+> Gli eseguibili non sono ancora firmati digitalmente (normale per i piccoli tool open source), quindi
+> SmartScreen e i browser avvisano di un "editore sconosciuto". Il codice sorgente è pubblico: puoi
+> verificarlo o compilarlo tu stesso:
+> - **Per eseguirlo:** nel riquadro SmartScreen clicca *Ulteriori informazioni → Esegui comunque*; nel browser scegli *Mantieni*.
+> - **Verifica il download:** confronta l'SHA-256 con `SHA256SUMS.txt` nella release
+>   (PowerShell: `Get-FileHash stformat.exe`).
+> - **Oppure compila da sorgente** (più sotto) se preferisci non scaricare un binario.
+
 ### Da sorgente (Windows / macOS / Linux)
 Serve il [.NET SDK 10](https://dotnet.microsoft.com/download).
 ```bash
