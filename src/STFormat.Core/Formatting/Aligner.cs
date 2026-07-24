@@ -12,6 +12,7 @@ namespace STFormat.Core.Formatting
         CommentOnly,
         Declaration, // dentro VAR/STRUCT, con ':' di livello 0
         Assignment,  // statement "lhs := rhs ;" con ':=' di livello 0
+        EnumMember,  // membro di ENUM: "NAME := valore ," (allineato come le assegnazioni)
         Normal
     }
 

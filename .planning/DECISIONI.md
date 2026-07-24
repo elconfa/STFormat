@@ -55,6 +55,8 @@
 - [x] Allineare commenti a fine riga nei gruppi.
 - [x] Gruppi di 1 riga non vengono tab-allineati; allineamento disattivabile via `FormatOptions`.
 - [x] Idempotenza mantenuta; 10 test allineamento (65 totali).
+- [x] ENUM `TYPE Name : ( ... ) BASE;`: membri indentati e allineati (`:=` + commenti) con tab
+      (`IndentEngine` traccia `TYPE` e il corpo `( )` come `EnumBody`; classe riga `EnumMember`).
 - [ ] Allineare parametri `:=`/`=>` nelle chiamate FB **multi-riga** (rimandato).
 
 ### Fase 4 — CLI ✅

@@ -16,28 +16,33 @@ namespace STFormat.Core.Formatting
         /// <summary>True se la riga è dentro un blocco di dichiarazione (VAR*/STRUCT/UNION).</summary>
         public bool InDeclarationBlock { get; }
 
-        public LineLayout(int level, bool isCaseLabel, bool inDeclarationBlock)
+        /// <summary>True se la riga è un membro dentro il corpo di un ENUM ( ... ).</summary>
+        public bool InEnumBody { get; }
+
+        public LineLayout(int level, bool isCaseLabel, bool inDeclarationBlock, bool inEnumBody)
         {
             Level = level;
             IsCaseLabel = isCaseLabel;
             InDeclarationBlock = inDeclarationBlock;
+            InEnumBody = inEnumBody;
         }
     }
 
     /// <summary>
     /// Calcola l'indentazione riga per riga tramite uno stack di blocchi aperti.
     /// Non è un parser: riconosce le keyword strutturali (IF/FOR/WHILE/REPEAT/CASE, VAR*, STRUCT)
-    /// e i loro END_*, più i "mid" ELSE/ELSIF/UNTIL e le etichette di CASE.
+    /// e i loro END_*, i "mid" ELSE/ELSIF/UNTIL, le etichette di CASE, e il corpo degli ENUM
+    /// definiti con "TYPE Name : ( ... ) BASE;".
     /// Le intestazioni di POU (FUNCTION_BLOCK, PROGRAM, ...) e TYPE non indentano il proprio corpo,
-    /// secondo la convenzione TwinCAT (blocchi VAR e implementazione a colonna 0).
+    /// secondo la convenzione TwinCAT.
     /// </summary>
     public sealed class IndentEngine
     {
-        private enum FrameType { DeclBlock, CtrlBlock, Case, CaseArm }
+        private enum FrameType { DeclBlock, CtrlBlock, EnumBody, Case, CaseArm }
 
         private readonly List<FrameType> _stack = new List<FrameType>();
+        private int _typeDepth; // profondità dei blocchi TYPE ... END_TYPE aperti
 
-        // Blocchi di dichiarazione (le cui righe interne sono candidate all'allineamento).
         private static readonly HashSet<string> DeclOpeners =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -47,7 +52,6 @@ namespace STFormat.Core.Formatting
                 "STRUCT", "UNION"
             };
 
-        // Blocchi di controllo del flusso.
         private static readonly HashSet<string> CtrlOpeners =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -74,12 +78,19 @@ namespace STFormat.Core.Formatting
 
         /// <summary>
         /// Calcola il layout della riga (indent + flag) a partire dai suoi token significativi
-        /// (senza trivia), aggiornando lo stack per le righe successive.
+        /// (senza trivia), aggiornando lo stato per le righe successive.
         /// </summary>
         public LineLayout ProcessLine(IReadOnlyList<Token> significant)
         {
             if (significant.Count == 0)
-                return new LineLayout(Depth, false, Top == FrameType.DeclBlock);
+                return new LineLayout(Depth, false, Top == FrameType.DeclBlock, Top == FrameType.EnumBody);
+
+            // Chiusura del corpo ENUM: la riga ")..." si dedenta al livello dell'apertura.
+            if (Top == FrameType.EnumBody && NetParen(significant) < 0)
+            {
+                Pop();
+                return new LineLayout(Max0(Depth), false, false, false);
+            }
 
             Token first = significant[0];
             string? kw = first.Kind == TokenKind.Keyword ? first.Text.ToUpperInvariant() : null;
@@ -91,7 +102,7 @@ namespace STFormat.Core.Formatting
                 Pop();
                 int r = Depth;
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(r), false, false);
+                return new LineLayout(Max0(r), false, false, false);
             }
 
             // ELSE: o "else" di un IF, o "else" di un CASE (in base al frame in cima).
@@ -99,50 +110,50 @@ namespace STFormat.Core.Formatting
             {
                 if (Top == FrameType.CaseArm)
                 {
-                    Pop();                       // chiude l'arm precedente
-                    int r = Depth;               // livello etichette del CASE
-                    Push(FrameType.CaseArm);     // apre il corpo dell'else
+                    Pop();
+                    int r = Depth;
+                    Push(FrameType.CaseArm);
                     ApplyStructural(significant, 1);
-                    return new LineLayout(Max0(r), false, false);
+                    return new LineLayout(Max0(r), false, false, false);
                 }
 
-                int rIf = Depth - 1;             // dedent al livello dell'IF
+                int rIf = Depth - 1;
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(rIf), false, false);
+                return new LineLayout(Max0(rIf), false, false, false);
             }
 
-            if (kw == "ELSIF")
+            if (kw == "ELSIF" || kw == "UNTIL")
             {
                 int r = Depth - 1;
                 ApplyStructural(significant, 1);
-                return new LineLayout(Max0(r), false, false);
-            }
-
-            if (kw == "UNTIL")
-            {
-                int r = Depth - 1;
-                ApplyStructural(significant, 1);
-                return new LineLayout(Max0(r), false, false);
+                return new LineLayout(Max0(r), false, false, false);
             }
 
             // Etichetta di CASE: dentro un CASE, riga che termina con ':'.
             bool inCase = Top == FrameType.Case || Top == FrameType.CaseArm;
             if (inCase && IsCaseLabel(significant))
             {
-                if (Top == FrameType.CaseArm) Pop(); // chiude l'arm precedente
-                int r = Depth;                       // livello etichette
-                Push(FrameType.CaseArm);             // apre il corpo dell'etichetta
-                return new LineLayout(Max0(r), true, false);
+                if (Top == FrameType.CaseArm) Pop();
+                int r = Depth;
+                Push(FrameType.CaseArm);
+                return new LineLayout(Max0(r), true, false, false);
             }
 
-            // Riga normale: rende al livello corrente e applica eventuali aperture/chiusure.
+            // Riga normale.
             bool inDecl = Top == FrameType.DeclBlock;
+            bool inEnum = Top == FrameType.EnumBody;
             int render = Depth;
+
             ApplyStructural(significant, 0);
-            return new LineLayout(Max0(render), false, inDecl);
+
+            // Apertura del corpo ENUM: dentro un TYPE, una riga che apre più parentesi di quante ne chiude.
+            if (_typeDepth > 0 && Top != FrameType.EnumBody && NetParen(significant) > 0)
+                Push(FrameType.EnumBody);
+
+            return new LineLayout(Max0(render), false, inDecl, inEnum);
         }
 
-        /// <summary>Applica allo stack le keyword strutturali della riga (aperture/chiusure).</summary>
+        /// <summary>Applica allo stato le keyword strutturali della riga (aperture/chiusure, TYPE).</summary>
         private void ApplyStructural(IReadOnlyList<Token> sig, int start)
         {
             for (int i = start; i < sig.Count; i++)
@@ -150,7 +161,9 @@ namespace STFormat.Core.Formatting
                 if (sig[i].Kind != TokenKind.Keyword) continue;
                 string k = sig[i].Text.ToUpperInvariant();
 
-                if (k == "CASE") Push(FrameType.Case);
+                if (k == "TYPE") _typeDepth++;
+                else if (k == "END_TYPE") { if (_typeDepth > 0) _typeDepth--; }
+                else if (k == "CASE") Push(FrameType.Case);
                 else if (DeclOpeners.Contains(k)) Push(FrameType.DeclBlock);
                 else if (CtrlOpeners.Contains(k)) Push(FrameType.CtrlBlock);
                 else if (Closers.Contains(k))
@@ -165,6 +178,18 @@ namespace STFormat.Core.Formatting
         {
             Token last = sig[sig.Count - 1];
             return last.Kind == TokenKind.Operator && last.Text == ":";
+        }
+
+        private static int NetParen(IReadOnlyList<Token> sig)
+        {
+            int net = 0;
+            foreach (Token t in sig)
+            {
+                if (t.Kind != TokenKind.Operator) continue;
+                if (t.Text == "(") net++;
+                else if (t.Text == ")") net--;
+            }
+            return net;
         }
 
         private static int Max0(int x) => x < 0 ? 0 : x;

@@ -68,6 +68,8 @@ namespace STFormat.Core.Formatting
 
             if (Aligner.IsCommentOnly(emit)) return LineClass.CommentOnly;
 
+            if (layout.InEnumBody) return LineClass.EnumMember;
+
             if (layout.InDeclarationBlock && !model.IsCaseLabel && Aligner.FindDeclColon(emit) >= 0)
                 return LineClass.Declaration;
 
@@ -108,6 +110,12 @@ namespace STFormat.Core.Formatting
                 else if (m.Class == LineClass.Assignment && alignAsn)
                 {
                     int j = RunEnd(models, i, LineClass.Assignment);
+                    EmitGroup(outLines, models, i, j, false, options);
+                    i = j;
+                }
+                else if (m.Class == LineClass.EnumMember && alignAsn)
+                {
+                    int j = RunEnd(models, i, LineClass.EnumMember);
                     EmitGroup(outLines, models, i, j, false, options);
                     i = j;
                 }

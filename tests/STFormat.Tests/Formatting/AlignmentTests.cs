@@ -125,6 +125,28 @@ namespace STFormat.Tests.Formatting
             "longVar:=nA+nLongName;\n";
 
         [Fact]
+        public void Enum_members_are_indented_and_aligned_with_tabs()
+        {
+            string input =
+                "TYPE E_Cmd :\n(\nAXIS_NULL:=0,// a\nAXIS_ENABLE:=1,// b\n) INT;\nEND_TYPE\n";
+            string expected =
+                "TYPE E_Cmd :\n" +
+                "(\n" +
+                "    AXIS_NULL\t:= 0,\t// a\n" +
+                "    AXIS_ENABLE\t:= 1,\t// b\n" +
+                ") INT;\n" +
+                "END_TYPE\n";
+            Assert.Equal(expected, Fmt(input));
+        }
+
+        [Fact]
+        public void Enum_formatting_is_idempotent()
+        {
+            string once = Fmt("TYPE E_Cmd :\n(\nA:=0,\nBB:=1,\nCCC:=2\n) INT;\nEND_TYPE\n");
+            Assert.Equal(once, Fmt(once));
+        }
+
+        [Fact]
         public void Alignment_is_idempotent()
         {
             string once = Fmt(AlignSample);
