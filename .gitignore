@@ -9,3 +9,9 @@ obj/
 
 # macOS
 .DS_Store
+
+# Istruzioni locali per l'assistente (solo sul PC, non su GitHub)
+CLAUDE.md
+
+# Cartella di lavoro immagini sorgente (le immagini del README stanno in docs/images/)
+immagini/
