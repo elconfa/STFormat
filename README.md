@@ -54,10 +54,12 @@ Download the **standalone** executable from the latest [Release](../../releases/
 ### Windows via Scoop
 If you use [Scoop](https://scoop.sh):
 ```powershell
-scoop install https://raw.githubusercontent.com/elconfa/STFormat/main/scoop/stformat.json
+scoop bucket add stformat https://github.com/elconfa/scoop-stformat
+scoop install stformat
 ```
 This installs the `stformat` command and a Start-menu shortcut for the GUI. Since Scoop does the
 download (not the browser), you don't get the "this file could be dangerous" prompt.
+Update later with `scoop update stformat`.
 
 ### From source (Windows / macOS / Linux)
 Requires the [.NET SDK 10](https://dotnet.microsoft.com/download).

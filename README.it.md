@@ -55,10 +55,12 @@ Scarica l'eseguibile **autonomo** dall'ultima [Release](../../releases/latest) �
 ### Windows con Scoop
 Se usi [Scoop](https://scoop.sh):
 ```powershell
-scoop install https://raw.githubusercontent.com/elconfa/STFormat/main/scoop/stformat.json
+scoop bucket add stformat https://github.com/elconfa/scoop-stformat
+scoop install stformat
 ```
 Installa il comando `stformat` e una scorciatoia della GUI nel menu Start. Dato che è Scoop a
 scaricare (non il browser), non compare l'avviso "questo file può essere pericoloso".
+Per aggiornare: `scoop update stformat`.
 
 ### Da sorgente (Windows / macOS / Linux)
 Serve il [.NET SDK 10](https://dotnet.microsoft.com/download).
