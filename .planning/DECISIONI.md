@@ -43,8 +43,11 @@
       collassate, a-capo rilevato e preservato, singolo newline finale.
 - [x] Idempotenza + invarianza dei token significativi (mod case keyword) — test dedicati.
 - [x] 20 test formatter verdi (55 totali col lexer).
-- [ ] Limiti noti (Fase 3+): continuazioni multi-riga rese al livello del blocco; etichetta+statement
-      sulla stessa riga (`1: x:=1;`) non porta il doppio indent.
+- [x] Continuazioni di statement multi-riga (senza parentesi): rientro di continuazione (+1) tramite
+      tracciamento `_openStatement` (una riga continua se la precedente non chiude con `;`/`THEN`/`DO`/`OF`…).
+      Le condizioni `IF … AND … THEN` su più righe vanno più a fondo del corpo.
+- [ ] Limiti noti: i commenti a fine riga sulle righe di continuazione non sono ancora incolonnati;
+      etichetta+statement sulla stessa riga (`1: x:=1;`) non porta il doppio indent.
 
 ### Fase 3 — Motore: allineamento a colonne (feature STWEEP) ✅
 - [x] **Riempimento con TAB, mai spazi** (requisito): anchor portati su tab stop (multipli di `TabWidth`,

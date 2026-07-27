@@ -46,6 +46,16 @@ namespace STFormat.Core.Formatting
         private readonly List<FrameType> _stack = new List<FrameType>();
         private readonly List<bool> _parens = new List<bool>(); // per ogni '(' aperta: true se corpo ENUM
         private int _typeDepth;
+        private bool _openStatement; // true se la riga precedente ha lasciato uno statement/header non chiuso
+
+        // Keyword che, se sono la PRIMA della riga, la rendono comunque "completa" (non è una continuazione).
+        private static readonly HashSet<string> HeaderFirstKeywords =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "TYPE", "UNTIL", "ELSE", "REPEAT",
+                "FUNCTION_BLOCK", "FUNCTION", "PROGRAM", "METHOD", "PROPERTY",
+                "ACTION", "INTERFACE", "CONFIGURATION", "RESOURCE"
+            };
 
         private static readonly HashSet<string> DeclOpeners =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -83,9 +93,13 @@ namespace STFormat.Core.Formatting
 
         public LineLayout ProcessLine(IReadOnlyList<Token> significant)
         {
+            // Riga vuota o solo-commento: non cambia lo stato dello statement.
             if (significant.Count == 0)
-                return new LineLayout(BlockDepth + ParenDepth, false, Top == FrameType.DeclBlock,
+            {
+                int cont = _openStatement && ParenDepth == 0 ? 1 : 0;
+                return new LineLayout(BlockDepth + ParenDepth + cont, false, Top == FrameType.DeclBlock,
                     TopParenIsEnum(), ParenDepth > 0 && !TopParenIsEnum());
+            }
 
             // --- Continuazione fra parentesi (parametri di chiamata / membri di enum / espressioni) ---
             if (ParenDepth > 0)
@@ -96,6 +110,7 @@ namespace STFormat.Core.Formatting
                 bool inEnum = !closesLine && TopParenIsEnum();
                 bool inCall = !closesLine && !TopParenIsEnum();
                 UpdateParens(significant);
+                _openStatement = ParenDepth == 0 && !LineIsComplete(significant);
                 return new LineLayout(Max0(render), false, false, inEnum, inCall);
             }
 
@@ -108,6 +123,7 @@ namespace STFormat.Core.Formatting
                 Pop();
                 int r = BlockDepth;
                 ApplyStructural(significant, 1);
+                _openStatement = false;
                 return new LineLayout(Max0(r), false, false, false, false);
             }
 
@@ -119,11 +135,13 @@ namespace STFormat.Core.Formatting
                     int r = BlockDepth;
                     Push(FrameType.CaseArm);
                     ApplyStructural(significant, 1);
+                    _openStatement = false;
                     return new LineLayout(Max0(r), false, false, false, false);
                 }
 
                 int rIf = BlockDepth - 1;
                 ApplyStructural(significant, 1);
+                _openStatement = false;
                 return new LineLayout(Max0(rIf), false, false, false, false);
             }
 
@@ -131,6 +149,7 @@ namespace STFormat.Core.Formatting
             {
                 int r = BlockDepth - 1;
                 ApplyStructural(significant, 1);
+                _openStatement = ParenDepth == 0 && !LineIsComplete(significant); // ELSIF può proseguire su più righe
                 return new LineLayout(Max0(r), false, false, false, false);
             }
 
@@ -140,15 +159,40 @@ namespace STFormat.Core.Formatting
                 if (Top == FrameType.CaseArm) Pop();
                 int r = BlockDepth;
                 Push(FrameType.CaseArm);
+                _openStatement = false;
                 return new LineLayout(Max0(r), true, false, false, false);
             }
 
             // Riga normale (fuori dalle parentesi).
+            bool isContinuation = _openStatement && ParenDepth == 0;
             bool inDecl = Top == FrameType.DeclBlock;
-            int render2 = BlockDepth;
+            int render2 = BlockDepth + (isContinuation ? 1 : 0);
             ApplyStructural(significant, 0);
             UpdateParens(significant); // eventuali '(' aperte qui iniziano una continuazione
-            return new LineLayout(Max0(render2), false, inDecl, false, false);
+            _openStatement = ParenDepth == 0 && !LineIsComplete(significant);
+            return new LineLayout(Max0(render2), false, inDecl && !isContinuation, false, false);
+        }
+
+        // True se la riga chiude lo statement/header corrente (la riga successiva NON è una continuazione).
+        private static bool LineIsComplete(IReadOnlyList<Token> sig)
+        {
+            Token last = sig[sig.Count - 1];
+            if (last.Kind == TokenKind.Operator && (last.Text == ";" || last.Text == ":")) return true;
+            if (last.Kind == TokenKind.Keyword)
+            {
+                string u = last.Text.ToUpperInvariant();
+                if (u == "THEN" || u == "DO" || u == "OF" || u == "ELSE" || u == "REPEAT") return true;
+            }
+
+            Token first = sig[0];
+            if (first.Kind == TokenKind.Keyword)
+            {
+                string f = first.Text.ToUpperInvariant();
+                if (f.StartsWith("END_", StringComparison.OrdinalIgnoreCase)) return true;
+                if (DeclOpeners.Contains(f)) return true;
+                if (HeaderFirstKeywords.Contains(f)) return true;
+            }
+            return false;
         }
 
         private void ApplyStructural(IReadOnlyList<Token> sig, int start)

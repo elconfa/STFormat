@@ -147,6 +147,36 @@ namespace STFormat.Tests.Formatting
             Assert.Equal(expected, Fmt(input));
         }
 
+        // ---- Continuazione di statement multi-riga ----
+
+        [Fact]
+        public void Indents_multiline_statement_continuation()
+        {
+            // Le righe che continuano uno statement non chiuso vengono rientrate (+1), non lasciate a colonna 0.
+            Assert.Equal(
+                "xMoving := a\n    AND b\n    AND c;\n",
+                Fmt("xMoving := a\nAND b\nAND c;\n"));
+        }
+
+        [Fact]
+        public void Indents_multiline_if_condition_past_the_body()
+        {
+            string input = "IF a\nAND b THEN\nx:=1;\nEND_IF\n";
+            string expected =
+                "IF a\n" +
+                "        AND b THEN\n" +   // continuazione della condizione: più a fondo del corpo
+                "    x := 1;\n" +
+                "END_IF\n";
+            Assert.Equal(expected, Fmt(input));
+        }
+
+        [Fact]
+        public void Continuation_indent_is_idempotent()
+        {
+            string once = Fmt("xMoving := a\nAND b\nAND c;\n");
+            Assert.Equal(once, Fmt(once));
+        }
+
         // ---- Commenti ----
 
         [Fact]
