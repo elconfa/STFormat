@@ -73,7 +73,7 @@ dotnet build -c Release
 ## Uso — riga di comando
 
 ```bash
-# Formatta in-place file e/o cartelle (ricorsione su .TcPOU/.TcGVL/.TcDUT/.TcIO/.exp/.st)
+# Formatta in-place file e/o cartelle (ricorsione su .TcPOU/.TcGVL/.TcDUT/.TcIO/.exp/.st/.txt)
 stformat src/
 
 # Anteprima senza scrivere

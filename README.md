@@ -72,7 +72,7 @@ dotnet build -c Release
 ## Usage — command line
 
 ```bash
-# Format in place, files and/or folders (recurses over .TcPOU/.TcGVL/.TcDUT/.TcIO/.exp/.st)
+# Format in place, files and/or folders (recurses over .TcPOU/.TcGVL/.TcDUT/.TcIO/.exp/.st/.txt)
 stformat src/
 
 # Preview without writing

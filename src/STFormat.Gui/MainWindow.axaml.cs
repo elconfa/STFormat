@@ -14,7 +14,7 @@ public partial class MainWindow : Window
         new(StringComparer.OrdinalIgnoreCase) { ".tcpou", ".tcgvl", ".tcdut", ".tcio" };
 
     private static readonly HashSet<string> ScanExtensions =
-        new(StringComparer.OrdinalIgnoreCase) { ".tcpou", ".tcgvl", ".tcdut", ".tcio", ".exp", ".st" };
+        new(StringComparer.OrdinalIgnoreCase) { ".tcpou", ".tcgvl", ".tcdut", ".tcio", ".exp", ".st", ".txt" };
 
     private string? _currentPath;
     private string _currentOriginal = "";
@@ -96,7 +96,7 @@ public partial class MainWindow : Window
             {
                 new FilePickerFileType("Structured Text / TwinCAT")
                 {
-                    Patterns = new[] { "*.TcPOU", "*.TcGVL", "*.TcDUT", "*.TcIO", "*.exp", "*.st" }
+                    Patterns = new[] { "*.TcPOU", "*.TcGVL", "*.TcDUT", "*.TcIO", "*.exp", "*.st", "*.txt" }
                 },
                 new FilePickerFileType(Loc.T("filter_all")) { Patterns = new[] { "*" } }
             }

@@ -13,7 +13,7 @@ namespace STFormat.Cli
 
         private static readonly HashSet<string> ScanExtensions =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { ".tcpou", ".tcgvl", ".tcdut", ".tcio", ".exp", ".st" };
+            { ".tcpou", ".tcgvl", ".tcdut", ".tcio", ".exp", ".st", ".txt" };
 
         private static int Main(string[] args)
         {
@@ -187,7 +187,7 @@ Opzioni:
   --keywords MODE   upper | lower | preserve (default upper).
   -h, --help        Mostra questo aiuto.
 
-File riconosciuti nelle cartelle: .TcPOU .TcGVL .TcDUT .TcIO .exp .st
+File riconosciuti nelle cartelle: .TcPOU .TcGVL .TcDUT .TcIO .exp .st .txt
 Nei file XML TwinCAT viene formattato solo il codice ST dentro le CDATA.
 ");
         }
