@@ -171,6 +171,15 @@ namespace STFormat.Tests.Formatting
         }
 
         [Fact]
+        public void Pragma_line_does_not_indent_the_next_line()
+        {
+            // Un pragma {attribute ...} è una riga a sé: non deve far rientrare la riga successiva.
+            string input = "{attribute 'qualified_only'}\nVAR_GLOBAL CONSTANT\nnA:INT:=1;\nEND_VAR\n";
+            string expected = "{attribute 'qualified_only'}\nVAR_GLOBAL CONSTANT\n    nA : INT := 1;\nEND_VAR\n";
+            Assert.Equal(expected, Fmt(input));
+        }
+
+        [Fact]
         public void Continuation_indent_is_idempotent()
         {
             string once = Fmt("xMoving := a\nAND b\nAND c;\n");

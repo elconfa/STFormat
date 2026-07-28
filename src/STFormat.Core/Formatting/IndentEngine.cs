@@ -177,6 +177,7 @@ namespace STFormat.Core.Formatting
         private static bool LineIsComplete(IReadOnlyList<Token> sig)
         {
             Token last = sig[sig.Count - 1];
+            if (last.Kind == TokenKind.Pragma) return true; // {attribute ...} è una riga a sé
             if (last.Kind == TokenKind.Operator && (last.Text == ";" || last.Text == ":")) return true;
             if (last.Kind == TokenKind.Keyword)
             {
